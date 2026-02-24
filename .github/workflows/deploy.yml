@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 (No Docker Hub)
 
 on:
   push:
@@ -10,20 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Build Docker image
-        run: docker build -t devops-zero .
-
-      - name: SSH into EC2 and deploy
+      - name: SSH and Deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            cd devops-zero
+            git pull origin main
+
             docker stop devops-zero || true
             docker rm devops-zero || true
+
             docker build -t devops-zero .
             docker run -d -p 3000:3000 --name devops-zero devops-zero
